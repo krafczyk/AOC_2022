@@ -8,8 +8,6 @@ lang_dict["py"]="python_src/template.py"
 lang_dict["hs"]="hs_src/template.hs"
 lang_dict["cpp"]="cpp_src/src/template.cpp"
 
-echo "${lang_dict[@]}"
-
 langs=${@:2}
 if [ "${langs}" == "" ]; then
     langs=("jl" "rs" "py" "hs" "cpp")
