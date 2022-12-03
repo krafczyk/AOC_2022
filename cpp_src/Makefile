@@ -3,7 +3,7 @@ CXX=g++
 
 CXXFLAGS=-std=c++17 -fconcepts -O3 -Wall -Werror -Wextra -I utilities
 
-all:
+all: ./bin/day_3
 
 ./bin/% : ./src/%.cpp 
 	$(CXX) $(CXXFLAGS) $< -o $@
