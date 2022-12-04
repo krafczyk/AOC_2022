@@ -1,9 +1,9 @@
 CXX=g++
 #CXX=clang++
 
-CXXFLAGS=-std=c++17 -fconcepts -O3 -Wall -Werror -Wextra -I utilities
+CXXFLAGS=-std=c++20 -fconcepts -O3 -Wall -Werror -Wextra -I utilities
 
-all: ./bin/day_3
+all: ./bin/day_3 ./bin/day_4
 
 ./bin/% : ./src/%.cpp 
 	$(CXX) $(CXXFLAGS) $< -o $@

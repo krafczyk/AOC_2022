@@ -8,15 +8,15 @@
 // Shweeeeeeeeet
 
 template<typename T>
-concept bool ConstIterable = requires(T cont) {
-	{ cont.cbegin() } -> typename T::const_iterator;
-	{ cont.cend() } -> typename T::const_iterator;
+concept ConstIterable = requires(T cont) {
+	{ cont.cbegin() } -> std::convertible_to<typename T::const_iterator>;
+	{ cont.cend() } -> std::convertible_to<typename T::const_iterator>;
 };
 
 template<typename T>
-concept bool Iterable = requires(T cont) {
-	{ cont.begin() } -> typename T::iterator;
-	{ cont.end() } -> typename T::iterator;
+concept Iterable = requires(T cont) {
+	{ cont.begin() } -> std::convertible_to<typename T::iterator>;
+	{ cont.end() } -> std::convertible_to<typename T::iterator>;
 };
 
 template<ConstIterable container, typename type>
