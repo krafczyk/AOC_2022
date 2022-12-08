@@ -1,5 +1,9 @@
 #include <algorithm>
 #include <ostream>
+#include <string>
+#include <iterator>
+#include <sstream>
+#include <vector>
 
 //template<typename T>
 //concept Iterable 
@@ -31,7 +35,7 @@ bool hasElement(const container& cont, const type& el) {
 #else
 // BOOORING
 template<typename iter, typename type>
-bool hasElementHelper(const iter& begin, const iter& end, const type& el) {
+bool hasElementHelper(const iter& begin, const iter& end, const type& el) {k
 	if(std::find(begin, end, el) == end) {
 		return false;
 	} else {
@@ -211,4 +215,19 @@ long pair_hash_l(long x, long y) {
     unsigned long B = (y >= 0 ? 2*y : -2*y-1);
     long C = (long)((A >= B ? A*A+A+B : A+B*B)/2);
     return ((x < 0 && y < 0) || (x >= 0 && y >= 0) ? C : -C - 1);
+}
+
+template<typename Out>
+void split(const std::string& s, char delim, Out result) {
+    std::istringstream iss(s);
+    std::string item;
+    while (std::getline(iss, item, delim)) {
+        *result++ = item;
+    }
+}
+
+std::vector<std::string> split(const std::string& s, char delim) {
+    std::vector<std::string> elems;
+    split(s, delim, std::back_inserter(elems));
+    return elems;
 }
