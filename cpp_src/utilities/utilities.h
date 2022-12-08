@@ -231,3 +231,14 @@ std::vector<std::string> split(const std::string& s, char delim) {
     split(s, delim, std::back_inserter(elems));
     return elems;
 }
+
+namespace std {
+    template<typename T1, typename T2>
+    struct hash<std::pair<T1,T2>> {
+        size_t operator()(const std::pair<T1,T2>& p) {
+            std::hash<T1> hasher1;
+            std::hash<T2> hasher2;
+            return hasher1(p.first) ^ hasher2(p.second);
+        }
+    };
+}
