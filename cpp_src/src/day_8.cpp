@@ -70,67 +70,6 @@ namespace std {
     };
 }
 
-bool contains(const std::vector<Point>& vec, Point the_el) {
-    for (const auto& el: vec) {
-        if (el == the_el) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void add_point_to_list(std::vector<Point>& list, Point to_add) {
-    if (!contains(list, to_add)) {
-        list.push_back(to_add);
-    }
-}
-
-void add_point_to_visit_list(std::vector<Point>& visited, std::vector<Point>& to_visit, Point new_point) {
-    if ((!contains(visited, new_point))&&(!contains(to_visit, new_point))) {
-        to_visit.push_back(new_point);
-    }
-}
-
-void expand_group(std::vector<Point>& visible, std::vector<std::vector<int>> map) {
-    // Compute map size
-    size_t H = map.size();
-    size_t W = map[0].size();
-
-    auto get_elevation = [&](Point p) {
-        return map[p.y][p.x];
-    };
-
-
-    // Expands the visible group until all points visible from the original set are in it.
-    std::vector<Point> to_visit;
-    // We must visit every element of the initial set.
-    for (auto p: visible) {
-        to_visit.push_back(p);
-    }
-
-    // Run expansion until no more points are left to visit
-    while (to_visit.size() > 0) {
-        // Pop off the last element
-        auto p = to_visit[to_visit.size()-1];
-        to_visit.pop_back();
-        // Get current elevation
-        auto cur_elevation = get_elevation(p);
-        auto n_p = p.get_neighbors(W, H);
-        for (auto p_n: n_p) {
-            if(!contains(visible, p_n)) {
-                auto n_elevation = get_elevation(p_n);
-                if (n_elevation > cur_elevation) {
-                    // this point is visible
-                    if(!contains(visible, p_n)) {
-                        visible.push_back(p_n);
-                        to_visit.push_back(p_n);
-                    }
-                }
-            }
-        }
-    }
-}
-
 bool is_visible(const std::unordered_map<Point,bool>& visible, Point p) {
     for (const auto& el: visible)  {
         if ((el.first == p)&&el.second) {
