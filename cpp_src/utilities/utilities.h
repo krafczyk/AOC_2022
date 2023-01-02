@@ -4,12 +4,10 @@
 #include <iterator>
 #include <sstream>
 #include <vector>
+#include <set>
+#include <concepts>
 
-//template<typename T>
-//concept Iterable 
-
-#if defined(__GNUC__) && not defined(YCM)
-// Shweeeeeeeeet
+// Concepts
 
 template<typename T>
 concept ConstIterable = requires(T cont) {
@@ -32,58 +30,7 @@ bool hasElement(const container& cont, const type& el) {
 	}
 }
 
-#else
-// BOOORING
-template<typename iter, typename type>
-bool hasElementHelper(const iter& begin, const iter& end, const type& el) {k
-	if(std::find(begin, end, el) == end) {
-		return false;
-	} else {
-		return true;
-	}
-}
-
-template<typename container, typename type>
-bool hasElement(const container& cont, const type& el) {
-	return hasElementHelper(cont.begin(), cont.end(), el);
-}
-#endif
-
-template<typename C, typename F>
-void ConstForEach(const C& container, F functor) {
-	std::for_each(container.cbegin(), container.cend(), functor);
-}
-
-template<typename C, typename F>
-void ForEach(C& container, F functor) {
-	std::for_each(container.begin(), container.end(), functor);
-}
-
-template<typename C, typename type>
-void removeFirst(C& container, const type& el) {
-	for(auto it = container.begin(); it != container.end(); ++it) {
-		if(*it == el) {
-			container.erase(it);
-			break;
-		}
-	}
-}
-
-template<typename C, typename type>
-void removeAll(C& container, const type& el) {
-	for(auto it = container.begin(); it != container.end();) {
-		if(*it == el) {
-			it = container.erase(it);
-		} else {
-			++it;
-		}
-	}
-}
-
-template<typename C, typename F>
-void removeIf(C& container, F functor) {
-    std::remove_if(container.begin(), container.end(), functor);
-}
+// Arrays
 
 template<typename T>
 class array_2d {
@@ -199,38 +146,10 @@ class map_val {
         bool set;
 };
 
-int pair_hash(int x, int y) {
-    // Here we use something similar to cantor pairing.
-    // https://stackoverflow.com/questions/919612/mapping-two-integers-to-one-in-a-unique-and-deterministic-way
-    unsigned int A = (x >= 0 ? 2*x : -2*x-1);
-    unsigned int B = (y >= 0 ? 2*y : -2*y-1);
-    int C = (int)((A >= B ? A*A+A+B : A+B*B)/2);
-    return ((x < 0 && y < 0) || (x >= 0 && y >= 0) ? C : -C - 1);
-}
+// Hash utilities
 
-long pair_hash_l(long x, long y) {
-    // Here we use something similar to cantor pairing.
-    // https://stackoverflow.com/questions/919612/mapping-two-integers-to-one-in-a-unique-and-deterministic-way
-    unsigned long A = (x >= 0 ? 2*x : -2*x-1);
-    unsigned long B = (y >= 0 ? 2*y : -2*y-1);
-    long C = (long)((A >= B ? A*A+A+B : A+B*B)/2);
-    return ((x < 0 && y < 0) || (x >= 0 && y >= 0) ? C : -C - 1);
-}
-
-template<typename Out>
-void split(const std::string& s, char delim, Out result) {
-    std::istringstream iss(s);
-    std::string item;
-    while (std::getline(iss, item, delim)) {
-        *result++ = item;
-    }
-}
-
-std::vector<std::string> split(const std::string& s, char delim) {
-    std::vector<std::string> elems;
-    split(s, delim, std::back_inserter(elems));
-    return elems;
-}
+int pair_hash(int x, int y);
+long pair_hash_l(long x, long y);
 
 namespace std {
     template<typename T1, typename T2>
@@ -241,4 +160,182 @@ namespace std {
             return hasher1(p.first) ^ hasher2(p.second);
         }
     };
+}
+
+// split methods
+
+std::vector<std::string> split(const std::string& s, char delim);
+
+// Initial Definitions
+template<typename T> class Point;
+template<typename T> class Bivector;
+
+template<typename T>
+class Point {
+    public:
+        Point() {
+            this->x = 0;
+            this->y = 0;
+        }
+        Point(T x, T y) {
+            this->x = x;
+            this->y = y;
+        }
+        Point(const Point& rhs) {
+            this->x = rhs.x;
+            this->y = rhs.y;
+        }
+        template<typename U>
+        Point(const Point<U>& rhs) {
+            this->x = (T) rhs.x;
+            this->y = (T) rhs.y;
+        }
+        Point& operator=(const Point& rhs) {
+            this->x = rhs.x;
+            this->y = rhs.y;
+            return *this;
+        }
+        bool operator==(const Point& rhs) const {
+            if ((this->x == rhs.x) && (this->y == rhs.y)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        bool operator!=(const Point& rhs) const {
+            return !((*this)==rhs);
+        }
+        Point operator*(float s) const {
+            return Point(this->x*s, this->y*s);
+        }
+        Point operator-(const Point& rhs) const {
+            return Point(this->x-rhs.x, this->y-rhs.y);
+        }
+        Point operator+(const Point& rhs) const {
+            return Point(this->x+rhs.x, this->y+rhs.y);
+        }
+        Bivector<T> wedge(const Point& rhs) const;
+        T dist(const Point& rhs) const {
+            return std::abs(this->x-rhs.x)+std::abs(this->y-rhs.y);
+        }
+        T mag() const {
+            return std::abs(this->x)+std::abs(this->y);
+        }
+        T dot(const Point& rhs) const {
+            return this->x*rhs.x+this->y*rhs.y;
+        }
+        std::string str() const {
+            std::stringstream ss;
+            ss << this->x << "," << this->y;
+            return ss.str();
+        }
+        T x;
+        T y;
+};
+
+// Define hash for Point so we can use maps and sets with it
+namespace std {
+    template<typename T>
+    struct hash<Point<T>> {
+        size_t operator()(const Point<T>& p) const {
+            std::hash<std::pair<T, T>> hasher;
+            return hasher(std::pair<T, T>(p.x, p.y));
+        }
+    };
+}
+
+template<typename T>
+class Bivector {
+    public:
+        Bivector() {
+            this->xy = 0;
+        }
+        Bivector(T xy) {
+            this->xy = xy;
+        }
+        Bivector(const Bivector& rhs) {
+            this->xy = rhs.xy;
+        }
+        template<typename U>
+        Bivector(const Bivector<U>& rhs) {
+            this->xy = (T) rhs.xy;
+        }
+        Bivector& operator=(const Bivector& rhs) {
+            this->xy = rhs.xy;
+            return *this;
+        }
+        bool operator==(const Bivector& rhs) const {
+            return (this->xy == rhs.xy);
+        }
+        bool operator!=(const Bivector& rhs) const {
+            return !((*this)==rhs);
+        }
+        Bivector operator*(float s) const {
+            return Bivector(this->xy*s);
+        }
+        Bivector operator-(const Bivector& rhs) const {
+            return Bivector(this->xy-rhs.xy);
+        }
+        Bivector operator+(const Bivector& rhs) const {
+            return Bivector(this->xy+rhs.xy);
+        }
+        T mag() const {
+            return std::abs(this->xy);
+        }
+        T dot(const Bivector& rhs) const {
+            return this->xy*rhs.xy;
+        }
+        std::string str() const {
+            std::stringstream ss;
+            ss << this->xy << "i";
+            return ss.str();
+        }
+        T xy;
+};
+
+// parts of Point/Bivector which reference eachother
+template<typename T>
+Bivector<T> Point<T>::wedge(const Point& rhs) const {
+    return this->x*rhs.y-this->y*rhs.x;
+};
+
+// Needed utilities for working with sets/vectors
+
+template<typename T>
+std::vector<T> copy_set_to_vector(const std::set<T>& in_cont) {
+    std::vector<T> result;
+    for (const T& val: in_cont) {
+        result.push_back(val);
+    }
+    return result;
+}
+
+template<std::equality_comparable T>
+std::set<T> set_diff_slow(const std::set<T>& A, const std::set<T>& B) {
+   std::set<T> R;
+   for(const auto& a: A) {
+       if (!B.contains(a)) {
+           R.insert(a);
+       }
+   }
+   return R;
+}
+
+template<std::totally_ordered T>
+std::set<T> set_diff_fast(const std::set<T>& A, const std::set<T>& B) {
+    // Currently gives segfault?
+    std::vector<T> A_v = copy_set_to_vector(A);
+    std::sort(A_v.begin(), A_v.end());
+    std::vector<T> B_v = copy_set_to_vector(B);
+    std::sort(B_v.begin(), B_v.end());
+    std::vector<T> R_v;
+    std::set_difference(
+        A_v.cbegin(), A_v.cend(),
+        B_v.cbegin(), B_v.cend(),
+        std::back_inserter(R_v)); // The back inserter is needed here, otherwise we get a segfault
+    std::set<T> R;
+    for (const auto& v: R_v) {
+        R.insert(v);
+    }
+    return R;
 }

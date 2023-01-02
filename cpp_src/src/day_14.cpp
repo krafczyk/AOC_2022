@@ -11,61 +11,11 @@
 #include "utilities.h"
 
 typedef int32_t val_t;
+typedef Point<val_t> point_t;
 
 enum class Tile { Wall, Sand };
 
-class Point {
-    public:
-        Point(val_t x, val_t y) {
-            this->x = x;
-            this->y = y;
-        }
-        Point(const Point& rhs) {
-            this->x = rhs.x;
-            this->y = rhs.y;
-        }
-        Point& operator=(const Point& rhs) {
-            this->x = rhs.x;
-            this->y = rhs.y;
-            return *this;
-        }
-        bool operator==(const Point& rhs) const {
-            if ((this->x == rhs.x) && (this->y == rhs.y)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        bool operator!=(const Point& rhs) const {
-            return !((*this)==rhs);
-        }
-        Point operator-(const Point& rhs) const {
-            return Point(this->x-rhs.x, this->y-rhs.y);
-        }
-        Point operator+(const Point& rhs) const {
-            return Point(this->x+rhs.x, this->y+rhs.y);
-        }
-        std::string str() const {
-            std::stringstream ss;
-            ss << this->x << "," << this->y;
-            return ss.str();
-        }
-        val_t x;
-        val_t y;
-};
-
-// Define hash for Point so we can use maps and sets with it
-namespace std {
-    template<>
-    struct hash<Point> {
-        size_t operator()(const Point& p) const {
-            std::hash<std::pair<val_t, val_t>> hasher;
-            return hasher(std::pair<val_t, val_t>(p.x, p.y));
-        }
-    };
-}
-
-void show_line(const std::vector<Point>& line) {
+void show_line(const std::vector<point_t>& line) {
     bool first = true;
     for (const auto& p: line) {
         if (first) {
@@ -78,21 +28,21 @@ void show_line(const std::vector<Point>& line) {
     std::cout << std::endl;
 }
 
-typedef std::unordered_map<Point,Tile> map_t;
+typedef std::unordered_map<point_t,Tile> map_t;
 
-void init_map(map_t& map, const std::vector<std::vector<Point>>& point_lines) {
+void init_map(map_t& map, const std::vector<std::vector<point_t>>& point_lines) {
     for (const auto& point_line: point_lines) {
         for (size_t i = 1; i < point_line.size(); ++i) {
-            Point first = point_line[i-1];
-            Point last = point_line[i];
-            Point diff = last-first;
+            point_t first = point_line[i-1];
+            point_t last = point_line[i];
+            point_t diff = last-first;
             if (diff.x != 0) {
                 diff.x = diff.x/std::abs(diff.x);
             }
             if (diff.y != 0) {
                 diff.y = diff.y/std::abs(diff.y);
             }
-            Point current = first;
+            point_t current = first;
             bool first_loop = true;
             do {
                 if (!first_loop) {
@@ -137,8 +87,8 @@ void show_map(const map_t& map) {
     min_y = 0;
     for (val_t y = min_y; y <= max_y; ++y) {
         for (val_t x = min_x; x <= max_x; ++x) {
-            Point p(x, y);
-            if (p == Point(500, 0)) {
+            point_t p(x, y);
+            if (p == point_t(500, 0)) {
                 std::cout << "+";
             } else if (map.contains(p)) {
                 const auto& val = map.at(p);
@@ -166,11 +116,11 @@ map_t copy_map(const map_t& map) {
 }
 
 bool add_sand_1(map_t& map, val_t max_y) {
-    Point sand(500, 0);
-    std::vector<Point> directions = {
-        Point(0, 1),
-        Point(-1,1),
-        Point(1,1) };
+    point_t sand(500, 0);
+    std::vector<point_t> directions = {
+        point_t(0, 1),
+        point_t(-1,1),
+        point_t(1,1) };
     bool added_sand = false;
     while (true) {
         if (sand.y > max_y) {
@@ -179,7 +129,7 @@ bool add_sand_1(map_t& map, val_t max_y) {
         }
         bool advanced = false;
         for (const auto& direction: directions) {
-            Point proj_sand = sand+direction;
+            point_t proj_sand = sand+direction;
             if (!map.contains(proj_sand)) {
                 sand = proj_sand;
                 advanced = true;
@@ -229,20 +179,20 @@ void solve_task_1(const map_t& in_map) {
 }
 
 bool add_sand_2(map_t& map, val_t floor_y) {
-    Point sand(500, 0);
+    point_t sand(500, 0);
     if (map.contains(sand)) {
         // sand entry point is now blocked
         return false;
     }
-    std::vector<Point> directions = {
-        Point(0, 1),
-        Point(-1,1),
-        Point(1,1) };
+    std::vector<point_t> directions = {
+        point_t(0, 1),
+        point_t(-1,1),
+        point_t(1,1) };
     bool added_sand = false;
     while (true) {
         bool advanced = false;
         for (const auto& direction: directions) {
-            Point proj_sand = sand+direction;
+            point_t proj_sand = sand+direction;
             if ((!map.contains(proj_sand))&&(proj_sand.y < floor_y)) {
                 sand = proj_sand;
                 advanced = true;
@@ -311,7 +261,7 @@ void solve_task_2(const map_t& in_map) {
     }
 
     for (val_t x = min_x-2; x <= max_x+2; ++x) {
-        Point p(x, floor_y);
+        point_t p(x, floor_y);
         map[p] = Tile::Wall;
     }
 
@@ -341,9 +291,9 @@ int main(int argc, char** argv) {
 
     std::regex coord_re("([-\\d]+),([-\\d]+)");
 
-    std::vector<std::vector<Point>> lines;
+    std::vector<std::vector<point_t>> lines;
     while (std::getline(infile, line)) {
-        std::vector<Point> point_line;
+        std::vector<point_t> point_line;
         std::smatch m;
         while (std::regex_search(line, m, coord_re)) {
             val_t x;
@@ -354,7 +304,7 @@ int main(int argc, char** argv) {
             ss.clear();
             ss << m[2];
             ss >> y;
-            point_line.push_back(Point(x, y));
+            point_line.push_back(point_t(x, y));
             line = m.suffix().str();
         }
         lines.push_back(point_line);
