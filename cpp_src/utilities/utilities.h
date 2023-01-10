@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 #include <ostream>
 #include <string>
 #include <iterator>
@@ -21,13 +22,60 @@ concept Iterable = requires(T cont) {
 	{ cont.end() } -> std::convertible_to<typename T::iterator>;
 };
 
-template<ConstIterable container, typename type>
-bool hasElement(const container& cont, const type& el) {
+template<typename T>
+concept Printable = requires(T t) {
+    { std::cout << t } -> std::same_as<std::ostream&>;
+};
+
+
+template<ConstIterable container>
+    requires requires (container c) {
+        requires std::equality_comparable<typename container::value_type>;
+    }
+bool hasElement(const container& cont, const typename container::value_type& el) {
 	if(std::find(cont.begin(), cont.end(), el) == cont.end()) {
 		return false;
 	} else {
 		return true;
 	}
+}
+
+template<ConstIterable container>
+    requires requires (container c) {
+        requires std::totally_ordered<typename container::value_type>;
+    }
+typename container::value_type maxElement(const container& cont) {
+    bool first = true;
+    typename container::value_type max_el = 0;
+    for(const auto& el: cont) {
+        if(first) {
+            max_el = el;
+            first = false;
+        } else {
+            if (el > max_el) {
+                max_el = el;
+            }
+        }
+    }
+    return max_el;
+}
+
+template<ConstIterable container>
+    requires requires (container c) {
+        requires Printable<typename container::value_type>;
+    }
+std::string render_iterable(const container& list) {
+    std::stringstream ss;
+    bool first = true;
+    for (const auto& el: list) {
+        if (!first) {
+            ss << ", ";
+        } else {
+            first = false;
+        }
+        ss << el;
+    }
+    return ss.str();
 }
 
 // Arrays
